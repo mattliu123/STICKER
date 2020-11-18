@@ -64,7 +64,7 @@ CHANNEL_2DW = W_CHANNEL
 SIZE_2DW = W_KERNEL
 #Layer0 ifmap: 227*227*3 filter 11*11*3(96 kernels)
 
-Input_fmap = np.zeros((IF_CHANNEL, IF_SIZE + 13, IF_SIZE +13), dtype = int)
+Input_fmap = np.zeros((IF_CHANNEL, IF_SIZE + 13, IF_SIZE + 13), dtype = int)
 filter_map = np.zeros((W_KERNEL, W_CHANNEL, W_SIZE, W_SIZE), dtype = int)
 
 multi_sparsity_IF = []
@@ -120,6 +120,7 @@ for i in range(CHANNEL_2DW):
 PE ARRAY: Channel -> 2D -> Kernel
 
 '''
+
 for t in range(W_KERNEL//16):
 	for j in range(SIZE_2DIF):
 		for k in range(SIZE_2DIF):
@@ -184,63 +185,63 @@ for t in range(W_KERNEL//16):
 
 #Weight DRAM access
 
-for t in range(W_KERNEL//16):
-	for i in range(CHANNEL_2DIF):
-		for j in range(16):
-			if((multi_sparsity_W[i][16*t+j].in_SRAM == 0) and ((W_SRAM_num + multi_sparsity_W[i][16*t+j].size) <= 16000)):
-				if(multi_sparsity_W[i][16*t+j].first_in_SRAM == 0):
-					W_DRAM_access = W_DRAM_access + multi_sparsity_W[i][16*t+j].size
-					W_SRAM_num = W_SRAM_num + multi_sparsity_W[i][16*t+j].size
-					multi_sparsity_W[i][16*t+j][k].in_SRAM = 1
-				else:
-					W_DRAM_access = W_DRAM_access + 121
-					W_SRAM_num = W_SRAM_num + multi_sparsity_W[i][16*t+j].size
-					multi_sparsity_W[i][16*t+j].in_SRAM = 1
-					multi_sparsity_W[i][16*t+j].first_in_SRAM = 0
+for t in range(6):
+	for k in range(225):
+		for i in range(CHANNEL_2DIF):
+			for j in range(16):
+				if((multi_sparsity_W[i][16*t+j].in_SRAM == 0) and ((W_SRAM_num + multi_sparsity_W[i][16*t+j].size) <= 16000)):
+					if(multi_sparsity_W[i][16*t+j].first_in_SRAM == 0):
+						W_DRAM_access = W_DRAM_access + multi_sparsity_W[i][16*t+j].size
+						W_SRAM_num = W_SRAM_num + multi_sparsity_W[i][16*t+j].size
+						multi_sparsity_W[i][16*t+j].in_SRAM = 1
+					else:
+						W_DRAM_access = W_DRAM_access + multi_sparsity_W[i][16*t+j].size
+						W_SRAM_num = W_SRAM_num + multi_sparsity_W[i][16*t+j].size
+						multi_sparsity_W[i][16*t+j].in_SRAM = 1
+						multi_sparsity_W[i][16*t+j].first_in_SRAM = 0
 
-			elif((multi_sparsity_W[i][16*t+j].in_SRAM == 0) and ((W_SRAM_num + multi_sparsity_W[i][16*t+j].size) > 16000)):
-				if(multi_sparsity_W[i][16*t+j].first_in_SRAM == 0):
-					W_DRAM_access = W_DRAM_access + multi_sparsity_W[i][16*t+j].size
-					multi_sparsity_W[i][16*t+j].in_SRAM = 1
-					while((W_SRAM_num + multi_sparsity_W[i][16*t+j].size) > 16000):
-						temp_i = 0
-						temp_j = 0
-						temp_use = 0
-						for a in range(CHANNEL_2DW):
-							for b in range(SIZE_2DW):
-								if(temp_use < multi_sparsity_W[a][b].least_recently_used):
-									temp_use = multi_sparsity_W[a][b].least_recently_used
-									temp_i = a
-									temp_j = b
-						W_SRAM_num = W_SRAM_num - multi_sparsity_W[temp_i][temp_j].size
-						multi_sparsity_W[temp_i][temp_j].in_SRAM = 0
-						multi_sparsity_W[temp_i][temp_j].least_recently_used = 0
-					W_SRAM_num = W_SRAM_num + multi_sparsity_W[i][16*t+j].size
-				else:
-					W_DRAM_access = W_DRAM_access + 121
-					multi_sparsity_W[i][12*t+j].in_SRAM = 1
-					multi_sparsity_W[i][12*t+j].first_in_SRAM = 0
-					while((W_SRAM_num + multi_sparsity_W[i][16*t+j].size) > 16000):
-						temp_i = 0
-						temp_j = 0
-						temp_use = 0
-						for a in range(CHANNEL_2DW):
-							for b in range(SIZE_2DW):
-								if(temp_use < multi_sparsity_W[a][b].least_recently_used):
-									temp_use = multi_sparsity_W[a][b].least_recently_used
-									temp_i = a
-									temp_j = b
-						W_SRAM_num = W_SRAM_num - multi_sparsity_W[temp_i][temp_j].size
-						multi_sparsity_W[temp_i][temp_j].in_SRAM = 0
-						multi_sparsity_W[temp_i][temp_j].least_recently_used = 0
-					W_SRAM_num = W_SRAM_num + multi_sparsity_W[i][16*t+j].size
-			
-			for a in range(CHANNEL_2DW):
-				for b in range(SIZE_2DW):
-					if(multi_sparsity_W[a][b].in_SRAM==1):
-						multi_sparsity_W[a][b].least_recently_used = multi_sparsity_W[a][b].least_recently_used + 1
+				elif((multi_sparsity_W[i][16*t+j].in_SRAM == 0) and ((W_SRAM_num + multi_sparsity_W[i][16*t+j].size) > 16000)):
+					if(multi_sparsity_W[i][16*t+j].first_in_SRAM == 0):
+						W_DRAM_access = W_DRAM_access + multi_sparsity_W[i][16*t+j].size
+						multi_sparsity_W[i][16*t+j].in_SRAM = 1
+						while((W_SRAM_num + multi_sparsity_W[i][16*t+j].size) > 16000):
+							temp_i = 0
+							temp_j = 0
+							temp_use = 0
+							for a in range(CHANNEL_2DW):
+								for b in range(SIZE_2DW):
+									if(temp_use < multi_sparsity_W[a][b].least_recently_used):
+										temp_use = multi_sparsity_W[a][b].least_recently_used
+										temp_i = a
+										temp_j = b
+							W_SRAM_num = W_SRAM_num - multi_sparsity_W[temp_i][temp_j].size
+							multi_sparsity_W[temp_i][temp_j].in_SRAM = 0
+							multi_sparsity_W[temp_i][temp_j].least_recently_used = 0
+						W_SRAM_num = W_SRAM_num + multi_sparsity_W[i][16*t+j].size
+					else:
+						W_DRAM_access = W_DRAM_access + multi_sparsity_W[i][16*t+j].size
+						multi_sparsity_W[i][16*t+j].in_SRAM = 1
+						multi_sparsity_W[i][16*t+j].first_in_SRAM = 0
+						while((W_SRAM_num + multi_sparsity_W[i][16*t+j].size) > 16000):
+							temp_i = 0
+							temp_j = 0
+							temp_use = 0
+							for a in range(CHANNEL_2DW):
+								for b in range(SIZE_2DW):
+									if(temp_use < multi_sparsity_W[a][b].least_recently_used):
+										temp_use = multi_sparsity_W[a][b].least_recently_used
+										temp_i = a
+										temp_j = b
+							W_SRAM_num = W_SRAM_num - multi_sparsity_W[temp_i][temp_j].size
+							multi_sparsity_W[temp_i][temp_j].in_SRAM = 0
+							multi_sparsity_W[temp_i][temp_j].least_recently_used = 0
+						W_SRAM_num = W_SRAM_num + multi_sparsity_W[i][16*t+j].size
+				
+				for a in range(CHANNEL_2DW):
+					for b in range(SIZE_2DW):
+						if(multi_sparsity_W[a][b].in_SRAM==1):
+							multi_sparsity_W[a][b].least_recently_used = multi_sparsity_W[a][b].least_recently_used + 1
 
-
-print(IF_DRAM_access)
-print(W_DRAM_access)
+print("IF DRAM Access data for Layer1 = ",IF_DRAM_access)
+print("Weight DRAM Access data for Layer1 = ",W_DRAM_access)
 

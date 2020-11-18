@@ -191,9 +191,9 @@ for t in range(W_KERNEL//16):
 				if(multi_sparsity_W[i][16*t+j].first_in_SRAM == 0):
 					W_DRAM_access = W_DRAM_access + multi_sparsity_W[i][16*t+j].size
 					W_SRAM_num = W_SRAM_num + multi_sparsity_W[i][16*t+j].size
-					multi_sparsity_W[i][16*t+j][k].in_SRAM = 1
+					multi_sparsity_W[i][16*t+j].in_SRAM = 1
 				else:
-					W_DRAM_access = W_DRAM_access + 9
+					W_DRAM_access = W_DRAM_access + multi_sparsity_W[i][16*t+j].size
 					W_SRAM_num = W_SRAM_num + multi_sparsity_W[i][16*t+j].size
 					multi_sparsity_W[i][16*t+j].in_SRAM = 1
 					multi_sparsity_W[i][16*t+j].first_in_SRAM = 0
@@ -217,9 +217,9 @@ for t in range(W_KERNEL//16):
 						multi_sparsity_W[temp_i][temp_j].least_recently_used = 0
 					W_SRAM_num = W_SRAM_num + multi_sparsity_W[i][16*t+j].size
 				else:
-					W_DRAM_access = W_DRAM_access + 9
-					multi_sparsity_W[i][12*t+j].in_SRAM = 1
-					multi_sparsity_W[i][12*t+j].first_in_SRAM = 0
+					W_DRAM_access = W_DRAM_access + multi_sparsity_W[i][16*t+j].size
+					multi_sparsity_W[i][16*t+j].in_SRAM = 1
+					multi_sparsity_W[i][16*t+j].first_in_SRAM = 0
 					while((W_SRAM_num + multi_sparsity_W[i][16*t+j].size) > 16000):
 						temp_i = 0
 						temp_j = 0
@@ -241,6 +241,6 @@ for t in range(W_KERNEL//16):
 						multi_sparsity_W[a][b].least_recently_used = multi_sparsity_W[a][b].least_recently_used + 1
 
 
-print(IF_DRAM_access)
-print(W_DRAM_access)
+print("IF DRAM Access data for Layer5 = ",IF_DRAM_access)
+print("Weight DRAM Access data Layer5 = ",W_DRAM_access)
 
