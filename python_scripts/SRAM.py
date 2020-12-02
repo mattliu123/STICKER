@@ -158,7 +158,7 @@ for t in range(W_KERNEL//16):
 	for j in range(SIZE_2DIF):
 		for k in range(SIZE_2DIF):
 			for i in range(CHANNEL_2DIF):
-			 	data = multi_sparsity_IF[i][j][k]
+				data = multi_sparsity_IF[i][j][k]
 				if(data.in_SRAM == 0):
 					IF_SRAM_num = IF_SRAM_num + data.size
 					IF_DRAM_access = IF_DRAM_access + data.size
@@ -177,7 +177,7 @@ for t in range(W_KERNEL//16):
 				# 	multi_sparsity_IF[i][j][k].in_SRAM = 1
 				# 	while((IF_SRAM_list.data_num() + multi_sparsity_IF[i][j][k].size) > 16000):
 				# 		IF_SRAM_list.remove_head()
-					    #  	temp_i = 0
+						#  	temp_i = 0
 						# 	temp_j = 0
 						# 	temp_k = 0
 						# 	temp_use = 0
