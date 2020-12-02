@@ -104,17 +104,17 @@ multi_sparsity_W = []
 for i in range(IF_CHANNEL):
 	for j in range(IF_SIZE):
 		for k in range(IF_SIZE):
-			if(randnum < 7680):
-				Input_fmap[i][j][k] = 1
-			randnum = random.randint(0,9999)
+			#if(randnum < 7680):
+			Input_fmap[i][j][k] = 1
+			#randnum = random.randint(0,9999)
 
 for i in range(W_KERNEL):
 	for j in range(W_CHANNEL):
 		for k in range(W_SIZE):
 			for l in range(W_SIZE):
-				if(randnum < 299):
-					filter_map[i][j][k][l] = 1
-				randnum = random.randint(0,9999)
+				#if(randnum < 299):
+				filter_map[i][j][k][l] = 1
+				#randnum = random.randint(0,9999)
 multi_sparsity_IF = [[[SRAM(0,0,0,1) for i in range(SIZE_2DIF)] for j in range(SIZE_2DIF)]for k in range(CHANNEL_2DIF)]
 multi_sparsity_W = [[SRAM(0,0,0,1) for i in range(SIZE_2DW)] for j in range(CHANNEL_2DW)]
 
@@ -159,11 +159,12 @@ for t in range(W_KERNEL//16):
 		for k in range(SIZE_2DIF):
 			for i in range(CHANNEL_2DIF):
 				if(multi_sparsity_IF[i][j][k].in_SRAM == 0):
+					IF_SRAM_num = IF_SRAM_num + multi_sparsity_IF[i][j][k].size
 					IF_DRAM_access = IF_DRAM_access + multi_sparsity_IF[i][j][k].size
 					IF_SRAM_list.add_list_item(multi_sparsity_IF[i][j][k])
-					if(IF_SRAM_list.data_num()>16000):
-						while(IF_SRAM_list.data_num() > 16000):
-							IF_SRAM_list.remove_head()
+					while(IF_SRAM_num > 16000):
+						IF_SRAM_num = IF_SRAM_num - IF_SRAM_list.head.size
+						IF_SRAM_list.remove_head()
 				# if((multi_sparsity_IF[i][j][k].in_SRAM == 0) and ((IF_SRAM_num + multi_sparsity_IF[i][j][k].size) <= 16000)):
 				# 	if(multi_sparsity_IF[i][j][k].first_in_SRAM == 0):
 				# 		IF_DRAM_access = IF_DRAM_access + multi_sparsity_IF[i][j][k].size
@@ -229,11 +230,12 @@ for t in range(W_KERNEL//16):
 		for i in range(CHANNEL_2DIF):
 			for j in range(16):
 				if(multi_sparsity_W[i][16*t+j].in_SRAM == 0):
+					W_SRAM_num = W_SRAM_num + multi_sparsity_W[i][16*t+j].size
 					W_DRAM_access = W_DRAM_access + multi_sparsity_W[i][16*t+j].size
 					WEIHT_SRAM_list.add_list_item(multi_sparsity_W[i][16*t+j])
-					if(WEIHT_SRAM_list.data_num()>16000):
-						while(WEIHT_SRAM_list.data_num()>16000):
-							WEIHT_SRAM_list.remove_head()
+					while(W_SRAM_num > 16000):
+						W_SRAM_num = W_SRAM_num - WEIHT_SRAM_list.head.size
+						WEIHT_SRAM_list.remove_head() 
 				# if((multi_sparsity_W[i][16*t+j].in_SRAM == 0) and ((W_SRAM_num + multi_sparsity_W[i][16*t+j].size) <= 16000)):
 				# 	if(multi_sparsity_W[i][16*t+j].first_in_SRAM == 0):
 				# 		W_DRAM_access = W_DRAM_access + multi_sparsity_W[i][16*t+j].size
