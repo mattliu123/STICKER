@@ -157,13 +157,14 @@ PE ARRAY: Channel -> 2D -> Kernel
 for t in range(W_KERNEL//16):
 	for j in range(SIZE_2DIF):
 		for k in range(SIZE_2DIF):
-			for i in range(CHANNEL_2DIF): 
-				if(multi_sparsity_IF[i][j][k].in_SRAM == 0):
-					IF_SRAM_num = IF_SRAM_num + multi_sparsity_IF[i][j][k].size
-					IF_DRAM_access = IF_DRAM_access + multi_sparsity_IF[i][j][k].size
-					IF_SRAM_list.add_list_item(multi_sparsity_IF[i][j][k])
+			for i in range(CHANNEL_2DIF):
+			 	data = multi_sparsity_IF[i][j][k]
+				if(data.in_SRAM == 0):
+					IF_SRAM_num = IF_SRAM_num + data.size
+					IF_DRAM_access = IF_DRAM_access + data.size
+					IF_SRAM_list.add_list_item(data)
 					while(IF_SRAM_num > 16000):
-						IF_SRAM_num = IF_SRAM_num - IF_SRAM_list.head.size
+						IF_SRAM_num -= IF_SRAM_list.head.size
 						IF_SRAM_list.remove_head()
 					# else:
 					# 	IF_DRAM_access = IF_DRAM_access + 256
@@ -224,12 +225,13 @@ for t in range(6):
 	for k in range(225):
 		for i in range(CHANNEL_2DIF):
 			for j in range(16):
-				if(multi_sparsity_W[i][16*t+j].in_SRAM == 0):
-					W_SRAM_num = W_SRAM_num + multi_sparsity_W[i][16*t+j].size
-					W_DRAM_access = W_DRAM_access + multi_sparsity_W[i][16*t+j].size
-					WEIHT_SRAM_list.add_list_item(multi_sparsity_W[i][16*t+j])
+				weight_data = multi_sparsity_W[i][16*t+j]
+				if(weight_data.in_SRAM == 0):
+					W_SRAM_num = W_SRAM_num + weight_data.size
+					W_DRAM_access = W_DRAM_access + weight_data.size
+					WEIHT_SRAM_list.add_list_item(weight_data)
 					while(W_SRAM_num > 16000):
-						W_SRAM_num = W_SRAM_num - WEIHT_SRAM_list.head.size
+						W_SRAM_num -= WEIHT_SRAM_list.head.size
 						WEIHT_SRAM_list.remove_head()  
 				# if((multi_sparsity_W[i][16*t+j].in_SRAM == 0) and ((W_SRAM_num + multi_sparsity_W[i][16*t+j].size) <= 16000)):
 				# 	if(multi_sparsity_W[i][16*t+j].first_in_SRAM == 0):
