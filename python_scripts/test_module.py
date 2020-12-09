@@ -162,7 +162,8 @@ def construct_IF_points(window_number, channel_size):
 
 	return IF_data
 
-
+def construct_weight_points():
+	pass
 
 # multi_sparsity_IF = [[[SRAM(0,0,0,1) for i in range(SIZE_2DIF)] for j in range(SIZE_2DIF)]for k in range(CHANNEL_2DIF)]
 # multi_sparsity_W = [[SRAM(0,0,0,1) for i in range(SIZE_2DW)] for j in range(CHANNEL_2DW)]
@@ -196,6 +197,8 @@ if __name__ == '__main__':
 	window_number = compute_window_slide_number(IF_size, weight_size, PE_size, stride)
 
 	IF_data = construct_IF_points(window_number, channel_size)
+
+	IF_linked_list = Linkedlist()
 
 
 
