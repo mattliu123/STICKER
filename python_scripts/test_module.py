@@ -25,14 +25,17 @@ conv5:	   47%
 
 #Class for compress data
 class SRAM():
-	def __init__(self, in_SRAM, least_recently_used, size, first_in_SRAM):
+	def __init__(self, in_SRAM, size, first_in_SRAM):
 		self.in_SRAM = 0
-		self.least_recently_used = 0
 		self.size = 0
 		self.first_in_SRAM = 1
 		self.next = None
-#Class for SRAM List
+
+
 class Linkedlist():
+	"""
+	This is the linked list version for SRAM
+	"""
 	def __init__(self):
 		self.head = None
 		self.tail = None
@@ -134,7 +137,12 @@ def sparsify_weight_map(weight_kernel_number, channel_size, weight_size, weight_
 
 	return all_zeros_weight_map
 
+def 
 
+
+
+multi_sparsity_IF = [[[SRAM(0,0,0,1) for i in range(SIZE_2DIF)] for j in range(SIZE_2DIF)]for k in range(CHANNEL_2DIF)]
+multi_sparsity_W = [[SRAM(0,0,0,1) for i in range(SIZE_2DW)] for j in range(CHANNEL_2DW)]
 
 
 

@@ -99,73 +99,7 @@ STRIDE = 4
 
 SPARTSITY_THRESHOLD = 0.5
 
-def apply_padding(raw_IF_size, padding_size = 0):
-	"""
-	This function adjusts the IF_size based on padding_size number
-	"""
-	IF_size = raw_IF_size + 2 * padding_size
-	return IF_size
 
-
-def construct_IF_map(IF_size, channel_size):
-	"""
-	This function constructs all zeros matrix for IF map
-	"""
-	Input_fmap = np.zeros((channel_size, IF_SIZE, IF_SIZE), dtype = int)
-
-	return Input_fmap
-
-def construct_weight_map(weight_kernel_number, channel_size, weight_size):
-	"""
-	This function constructs all zeros matrix for IF map
-	"""
-	weight_map = np.zeros((weight_kernel_number, channel_size, weight_size, weight_size), dtype = int)
-
-	return Input_fmap
-
-def sparsify_IF_map(all_zeros_IF_map, IF_size, raw_IF_size, channel_size, IF_sparsity, padding_size):
-	"""
-	This function adds randomness based on layer sparsity to the IF map
-	Should avoid affecting the border padded data which should always be zero
-
-	Calculate new sparsity by taking into consideration of the zero borders,
-	so the central parts should have less non zero terms 
-	Non-zero terms = IF_sparsity * IF_size ^ 2 = new_sparsity * raw_size ^ 2
-	"""
-
-	new_sparsity = IF_sparsity * (IF_size) ** 2 / (raw_size) ** 2
-
-	random_number = random.randint(0,99)
-
-	for i in range(channel_size):
-		for j in range(padding_size,IF_size - padding_size):
-			for k in range(padding_size,IF_size - padding_size):
-				if (random_number < new_sparsity):
-					all_zeros_IF_map[i][j][k] = 1
-				random_number = random.randint(0,99)
-
-	return all_zeros_IF_map
-
-def sparsify_weight_map(all_zeros_weight_map, weight_kernel_number, channel_size, weight_size, weight_sparsity):
-	"""
-	Same as IF map sparsification, but without considering padding problem
-	"""
-
-	random_number = random.randint(0,99)
-
-	for i in range(weight_kernel_number):
-		for j in range(channel_size):
-			for k in range(weight_size):
-				for l in range(weight_size):
-					if (random_number < weight_sparsity):
-						all_zeros_weight_map[i][j][k][l] = 1
-					random_number = random.randint(0,99)
-
-	return all_zeros_weight_map
-
-
-multi_sparsity_IF = [[[SRAM(0,0,0,1) for i in range(SIZE_2DIF)] for j in range(SIZE_2DIF)]for k in range(CHANNEL_2DIF)]
-multi_sparsity_W = [[SRAM(0,0,0,1) for i in range(SIZE_2DW)] for j in range(CHANNEL_2DW)]
 
 '''
 
