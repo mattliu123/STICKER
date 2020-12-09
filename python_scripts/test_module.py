@@ -167,7 +167,7 @@ def construct_weight_points():
 	pass
 
 
-def count_IF_sparsity(IF_data, channel_size, window_number, weight_size, sparsity_threshold):
+def count_IF_sparsity(IF_map, IF_data, channel_size, window_number, weight_size, sparsity_threshold, stride):
 	"""
 	Given the left-most and upper-most point of an IF block,
 	compute the sparsity count 
@@ -181,12 +181,11 @@ def count_IF_sparsity(IF_data, channel_size, window_number, weight_size, sparsit
 			for k in range(window_number):
 				column_index = weight_size * k
 				count = 0
-
 				for p in range(weight_size):
 					sub_row_index = row_index + p
 					for q in range(weight_size):
 						sub_column_index = column_index + q
-						count += IF_data[i][sub_row_index][sub_column_index]
+						count += IF_map[i][sub_row_index][sub_column_index]
 
 				if (count < sparsity_threshold * weight_size_squared):
 					IF_data[i][j][k].flag = "sparse"
@@ -198,22 +197,55 @@ def count_IF_sparsity(IF_data, channel_size, window_number, weight_size, sparsit
 	return IF_data
 
 
+def compute_IF_linked_list(IF_linked_list, IF_data, weight_kernel_number, window_number, channel_size, PE_number, IF_SRAM_size):
+	"""
+	This gives the IF DRAM access number
+	"""
+
+	IF_DRAM_access = 0
+
+	IF_SRAM_current_data_size = 0
+
+	kernel_loop_number = weight_kernel_number // PE_number
+
+	for kernel in range(kernel_loop_number):
+		for j in range(window_number):
+			for k in range(window_number):
+				for i in range(channel_size):
+					fetched_block = IF_data[i][j][k]
+					if (fetched_block.in_SRAM == 0):
+						IF_DRAM_access += fetched_block.size
+						IF_SRAM_current_data_size += fetched_block.size
+						IF_linked_list.add_list_item(fetched_block)
+
+						while (IF_SRAM_current_data_size > IF_SRAM_size):
+							IF_SRAM_current_data_size -= IF_linked_list.head.size
+							IF_linked_list.remove_head()
+							
+
+
+
+	return IF_DRAM_access
+
+
+# for t in range(W_KERNEL//16):
+# 	for j in range(SIZE_2DIF):
+# 		for k in range(SIZE_2DIF):
+# 			for i in range(CHANNEL_2DIF):
+# 				data = multi_sparsity_IF[i][j][k]
+# 				if(data.in_SRAM == 0):
+# 					IF_SRAM_num = IF_SRAM_num + data.size
+# 					IF_DRAM_access = IF_DRAM_access + data.size
+# 					IF_SRAM_list.add_list_item(data)
+# 					while(IF_SRAM_num > 16000):
+# 						IF_SRAM_num -= IF_SRAM_list.head.size
+# 						IF_SRAM_list.remove_head()
+
+
+
 # multi_sparsity_IF = [[[SRAM(0,0,0,1) for i in range(SIZE_2DIF)] for j in range(SIZE_2DIF)]for k in range(CHANNEL_2DIF)]
 # multi_sparsity_W = [[SRAM(0,0,0,1) for i in range(SIZE_2DW)] for j in range(CHANNEL_2DW)]
 
-for i in range(IF_CHANNEL):
-	for j in range(SIZE_2DIF):
-		for k in range(SIZE_2DIF):
-			count = 0
-			for a in range(16):
-				for b in range(16):
-					count = count + Input_fmap[i][16*j+a][16*k+b]
-			if(count<SPARTSITY_THRESHOLD*256):
-				multi_sparsity_IF[i][j][k].flag = "sparse"
-				multi_sparsity_IF[i][j][k].size = count
-			else:
-				multi_sparsity_IF[i][j][k].flag = "dense"
-				multi_sparsity_IF[i][j][k].size = 256
 
 if __name__ == '__main__':
 	#Constant
@@ -232,7 +264,7 @@ if __name__ == '__main__':
 	sparsity_threshold = 0.5
 
 	PE_size = 16
-	PE_number = 6
+	PE_number = 16
 
 	# SRAM buffer size
 	weight_SRAM_size, IF_SRAM_size = 16E3, 16E3
@@ -245,10 +277,13 @@ if __name__ == '__main__':
 	window_number = compute_window_slide_number(IF_size, weight_size, PE_size, stride)
 
 	IF_data = construct_IF_points(window_number, channel_size)
+	IF_data = count_IF_sparsity(IF_map, IF_data, channel_size, window_number, weight_size, sparsity_threshold, stride)
 
 	IF_linked_list = Linkedlist()
 
+	IF_DRAM_access = compute_IF_linked_list(IF_linked_list, IF_data, weight_kernel_number, window_number, channel_size, PE_number, IF_SRAM_size)
 
+	print ("DRAM access = ",IF_DRAM_access)
 
 
 
