@@ -24,8 +24,12 @@ conv5:	   47%
 '''
 
 #Class for compress data
-class SRAM():
-	def __init__(self, in_SRAM, size, first_in_SRAM):
+class DataPoint():
+	"""
+	This is the data point for IF and weight 
+	Each takes up to 1 byte
+	"""
+	def __init__(self):
 		self.in_SRAM = 0
 		self.size = 0
 		self.first_in_SRAM = 1
@@ -63,12 +67,6 @@ class Linkedlist():
 
 		return count
 		
-
-
-
-
-SPARTSITY_THRESHOLD = 0.5
-
 def apply_padding(raw_IF_size, padding_size = 0):
 	"""
 	This function adjusts the IF_size based on padding_size number
@@ -137,12 +135,37 @@ def sparsify_weight_map(weight_kernel_number, channel_size, weight_size, weight_
 
 	return all_zeros_weight_map
 
-def 
+def compute_window_slide_number(IF_size, weight_size, PE_size, stride):
+	"""
+	This function computes the number of sliding weight blocks 
+	all over the input feature map to cover all computations
+	The number is around IF_size / weight_size
+	This should also match the output feature size 
+	Apply the (N+2P-F)/S + 1 formula
+	"""
+	# Case for weight fits in PE unit
+	if weight_size < PE_size:
+		window_number = (IF_size - weight_size) / stride + 1
+	else:
+		raise Exception("Weight size is greater than PE size, need another algorithm")
+
+	return int(window_number)
+
+
+def construct_IF_points(window_number, channel_size):
+	"""
+	This constructs the mapping for IF data
+	"""
+	# print ("window_number = ",window_number)
+
+	IF_data = [[[DataPoint() for i in range(window_number)] for j in range(window_number)] for k in range(channel_size)]
+
+	return IF_data
 
 
 
-multi_sparsity_IF = [[[SRAM(0,0,0,1) for i in range(SIZE_2DIF)] for j in range(SIZE_2DIF)]for k in range(CHANNEL_2DIF)]
-multi_sparsity_W = [[SRAM(0,0,0,1) for i in range(SIZE_2DW)] for j in range(CHANNEL_2DW)]
+# multi_sparsity_IF = [[[SRAM(0,0,0,1) for i in range(SIZE_2DIF)] for j in range(SIZE_2DIF)]for k in range(CHANNEL_2DIF)]
+# multi_sparsity_W = [[SRAM(0,0,0,1) for i in range(SIZE_2DW)] for j in range(CHANNEL_2DW)]
 
 
 
@@ -160,9 +183,19 @@ if __name__ == '__main__':
 	IF_sparsity = 98
 	weight_sparsity = 87
 
+	SPARTSITY_THRESHOLD = 0.5
+
+	PE_size = 16
+	PE_number = 6
+
 	IF_size = apply_padding(raw_IF_size,padding_size)
 	IF_map = sparsify_IF_map(IF_size, raw_IF_size, channel_size, IF_sparsity, padding_size)
 	weight_map = sparsify_weight_map(weight_kernel_number, channel_size, weight_size, weight_sparsity)
+
+	# Number of 2D slides
+	window_number = compute_window_slide_number(IF_size, weight_size, PE_size, stride)
+
+	IF_data = construct_IF_points(window_number, channel_size)
 
 
 
