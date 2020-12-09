@@ -99,13 +99,12 @@ STRIDE = 4
 
 SPARTSITY_THRESHOLD = 0.5
 
-
-
-def apply_padding(raw_IF_size, padding = 0):
+def apply_padding(raw_IF_size, padding_size = 0):
 	"""
-	This function adjusts the IF_size based on padding number
+	This function adjusts the IF_size based on padding_size number
 	"""
-	return raw_IF_size + 2 * padding
+	IF_size = raw_IF_size + 2 * padding_size
+	return IF_size
 
 
 def construct_IF_map(IF_size, channel_size):
@@ -124,23 +123,47 @@ def construct_weight_map(weight_kernel_number, channel_size, weight_size):
 
 	return Input_fmap
 
+def sparsify_IF_map(all_zeros_IF_map, IF_size, raw_IF_size, channel_size, IF_sparsity, padding_size):
+	"""
+	This function adds randomness based on layer sparsity to the IF map
+	Should avoid affecting the border padded data which should always be zero
+
+	Calculate new sparsity by taking into consideration of the zero borders,
+	so the central parts should have less non zero terms 
+	Non-zero terms = IF_sparsity * IF_size ^ 2 = new_sparsity * raw_size ^ 2
+	"""
+
+	new_sparsity = IF_sparsity * (IF_size) ** 2 / (raw_size) ** 2
+
+	random_number = random.randint(0,99)
+
+	for i in range(channel_size):
+		for j in range(padding_size,IF_size - padding_size):
+			for k in range(padding_size,IF_size - padding_size):
+				if (random_number < new_sparsity):
+					all_zeros_IF_map[i][j][k] = 1
+				random_number = random.randint(0,99)
+
+	return all_zeros_IF_map
+
+def sparsify_weight_map(all_zeros_weight_map, weight_kernel_number, channel_size, weight_size, weight_sparsity):
+	"""
+	Same as IF map sparsification, but without considering padding problem
+	"""
+
+	random_number = random.randint(0,99)
+
+	for i in range(weight_kernel_number):
+		for j in range(channel_size):
+			for k in range(weight_size):
+				for l in range(weight_size):
+					if (random_number < weight_sparsity):
+						all_zeros_weight_map[i][j][k][l] = 1
+					random_number = random.randint(0,99)
+
+	return all_zeros_weight_map
 
 
-
-for i in range(IF_CHANNEL):
-	for j in range(IF_SIZE):
-		for k in range(IF_SIZE):
-			if(randnum < 98):
-				Input_fmap[i][j][k] = 1
-			randnum = random.randint(0,99)
-
-for i in range(W_KERNEL):
-	for j in range(W_CHANNEL):
-		for k in range(W_SIZE):
-			for l in range(W_SIZE):
-				if(randnum < 87):
-					filter_map[i][j][k][l] = 1
-				randnum = random.randint(0,99)
 multi_sparsity_IF = [[[SRAM(0,0,0,1) for i in range(SIZE_2DIF)] for j in range(SIZE_2DIF)]for k in range(CHANNEL_2DIF)]
 multi_sparsity_W = [[SRAM(0,0,0,1) for i in range(SIZE_2DW)] for j in range(CHANNEL_2DW)]
 
