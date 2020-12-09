@@ -32,6 +32,7 @@ class DataPoint():
 	def __init__(self):
 		self.in_SRAM = 0
 		self.size = 0
+		self.flag = None
 		self.first_in_SRAM = 1
 		self.next = None
 
@@ -165,10 +166,54 @@ def construct_IF_points(window_number, channel_size):
 def construct_weight_points():
 	pass
 
+
+def count_IF_sparsity(IF_data, channel_size, window_number, weight_size, sparsity_threshold):
+	"""
+	Given the left-most and upper-most point of an IF block,
+	compute the sparsity count 
+	"""
+
+	weight_size_squared = weight_size * weight_size
+
+	for i in range(channel_size):
+		for j in range(window_number):
+			row_index = weight_size * j
+			for k in range(window_number):
+				column_index = weight_size * k
+				count = 0
+
+				for p in range(weight_size):
+					sub_row_index = row_index + p
+					for q in range(weight_size):
+						sub_column_index = column_index + q
+						count += IF_data[i][sub_row_index][sub_column_index]
+
+				if (count < sparsity_threshold * weight_size_squared):
+					IF_data[i][j][k].flag = "sparse"
+					IF_data[i][j][k].size = count
+
+				else:
+					IF_data[i][j][k].flag = "dense"
+					IF_data[i][j][k].size = weight_size_squared 
+	return IF_data
+
+
 # multi_sparsity_IF = [[[SRAM(0,0,0,1) for i in range(SIZE_2DIF)] for j in range(SIZE_2DIF)]for k in range(CHANNEL_2DIF)]
 # multi_sparsity_W = [[SRAM(0,0,0,1) for i in range(SIZE_2DW)] for j in range(CHANNEL_2DW)]
 
-
+for i in range(IF_CHANNEL):
+	for j in range(SIZE_2DIF):
+		for k in range(SIZE_2DIF):
+			count = 0
+			for a in range(16):
+				for b in range(16):
+					count = count + Input_fmap[i][16*j+a][16*k+b]
+			if(count<SPARTSITY_THRESHOLD*256):
+				multi_sparsity_IF[i][j][k].flag = "sparse"
+				multi_sparsity_IF[i][j][k].size = count
+			else:
+				multi_sparsity_IF[i][j][k].flag = "dense"
+				multi_sparsity_IF[i][j][k].size = 256
 
 if __name__ == '__main__':
 	#Constant
@@ -184,10 +229,13 @@ if __name__ == '__main__':
 	IF_sparsity = 98
 	weight_sparsity = 87
 
-	SPARTSITY_THRESHOLD = 0.5
+	sparsity_threshold = 0.5
 
 	PE_size = 16
 	PE_number = 6
+
+	# SRAM buffer size
+	weight_SRAM_size, IF_SRAM_size = 16E3, 16E3
 
 	IF_size = apply_padding(raw_IF_size,padding_size)
 	IF_map = sparsify_IF_map(IF_size, raw_IF_size, channel_size, IF_sparsity, padding_size)
