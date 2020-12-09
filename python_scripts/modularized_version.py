@@ -99,11 +99,32 @@ STRIDE = 4
 
 SPARTSITY_THRESHOLD = 0.5
 
-Input_fmap = np.zeros((IF_CHANNEL, IF_SIZE + 13, IF_SIZE + 13), dtype = int)
-filter_map = np.zeros((W_KERNEL, W_CHANNEL, W_SIZE, W_SIZE), dtype = int)
 
-multi_sparsity_IF = []
-multi_sparsity_W = []
+
+def apply_padding(raw_IF_size, padding = 0):
+	"""
+	This function adjusts the IF_size based on padding number
+	"""
+	return raw_IF_size + 2 * padding
+
+
+def construct_IF_map(IF_size, channel_size):
+	"""
+	This function constructs all zeros matrix for IF map
+	"""
+	Input_fmap = np.zeros((channel_size, IF_SIZE, IF_SIZE), dtype = int)
+
+	return Input_fmap
+
+def construct_weight_map(weight_kernel_number, channel_size, weight_size):
+	"""
+	This function constructs all zeros matrix for IF map
+	"""
+	weight_map = np.zeros((weight_kernel_number, channel_size, weight_size, weight_size), dtype = int)
+
+	return Input_fmap
+
+
 
 
 for i in range(IF_CHANNEL):
