@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import yaml
 '''
 AlexNet
 
@@ -22,6 +23,29 @@ conv4:	   48%
 conv5:	   47%
 
 '''
+
+
+def read_file_content(file_name):
+	"""
+
+	This function reads the content line by line and stores the result in a list
+
+	- Input:
+		* parent_directory: Since state_files and promotions files are not kept in the same
+			directory, we need to specify the location (ex. 'state_txt/')
+		* file_name: name of file, may be promotion_key (ex. machine_state)
+
+	- Return:
+		* content_list: list of read-in data from text file
+
+	"""
+
+	with open (file_name, encoding = "utf8") as read_file:
+		content = yaml.load(read_file,Loader=yaml.FullLoader)
+
+	print ("Content = ",content)
+	return content
+
 
 #Class for compress data
 class DataPoint():
@@ -175,6 +199,8 @@ def count_IF_sparsity(IF_map, IF_data, channel_size, window_number, weight_size,
 
 	weight_size_squared = window_number * window_number
 
+	print ("window_number = ",window_number)
+
 	# print ("weight_size = ",weight_size)
 
 	for i in range(channel_size):
@@ -230,27 +256,14 @@ def compute_IF_linked_list(IF_linked_list, IF_data, weight_kernel_number, window
 	return IF_DRAM_access
 
 
-# for t in range(W_KERNEL//16):
-# 	for j in range(SIZE_2DIF):
-# 		for k in range(SIZE_2DIF):
-# 			for i in range(CHANNEL_2DIF):
-# 				data = multi_sparsity_IF[i][j][k]
-# 				if(data.in_SRAM == 0):
-# 					IF_SRAM_num = IF_SRAM_num + data.size
-# 					IF_DRAM_access = IF_DRAM_access + data.size
-# 					IF_SRAM_list.add_list_item(data)
-# 					while(IF_SRAM_num > 16000):
-# 						IF_SRAM_num -= IF_SRAM_list.head.size
-# 						IF_SRAM_list.remove_head()
-
-
-
 # multi_sparsity_IF = [[[SRAM(0,0,0,1) for i in range(SIZE_2DIF)] for j in range(SIZE_2DIF)]for k in range(CHANNEL_2DIF)]
 # multi_sparsity_W = [[SRAM(0,0,0,1) for i in range(SIZE_2DW)] for j in range(CHANNEL_2DW)]
 
 
 if __name__ == '__main__':
 	#Constant
+	Loaded_content = read_file_content("../param/AlexNet_param.yaml")["Layer_one"]
+
 	IF_CHANNEL = 3
 	raw_IF_size = 227
 
