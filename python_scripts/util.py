@@ -138,6 +138,9 @@ for i in range(IF_CHANNEL):
 			for a in range(16):
 				for b in range(16):
 					count = count + Input_fmap[i][16*j+a][16*k+b]
+					
+			print ("count = ",count)
+
 			if(count<SPARTSITY_THRESHOLD*256):
 				multi_sparsity_IF[i][j][k].size = count
 			else:

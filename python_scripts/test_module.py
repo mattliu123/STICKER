@@ -175,11 +175,13 @@ def count_IF_sparsity(IF_map, IF_data, channel_size, window_number, weight_size,
 
 	weight_size_squared = weight_size * weight_size
 
+	# print ("weight_size = ",weight_size)
+
 	for i in range(channel_size):
 		for j in range(window_number):
-			row_index = weight_size * j
+			row_index = stride * j
 			for k in range(window_number):
-				column_index = weight_size * k
+				column_index = stride * k
 				count = 0
 				for p in range(weight_size):
 					sub_row_index = row_index + p
@@ -187,6 +189,7 @@ def count_IF_sparsity(IF_map, IF_data, channel_size, window_number, weight_size,
 						sub_column_index = column_index + q
 						count += IF_map[i][sub_row_index][sub_column_index]
 
+				# print("Count = ",count)
 				if (count < sparsity_threshold * weight_size_squared):
 					IF_data[i][j][k].flag = "sparse"
 					IF_data[i][j][k].size = count
@@ -202,11 +205,14 @@ def compute_IF_linked_list(IF_linked_list, IF_data, weight_kernel_number, window
 	This gives the IF DRAM access number
 	"""
 
-	IF_DRAM_access = 0
+	IF_DRAM_access, PSum_DRAM_access = 0, 0 
 
 	IF_SRAM_current_data_size = 0
 
 	kernel_loop_number = weight_kernel_number // PE_number
+
+	# This stores the IF_data
+	upper_left_index, lower_right_index = 0, 0
 
 	for kernel in range(kernel_loop_number):
 		for j in range(window_number):
