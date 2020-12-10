@@ -136,7 +136,7 @@ def sparsify_weight_map(weight_kernel_number, channel_size, weight_size, weight_
 
 	return all_zeros_weight_map
 
-def compute_window_slide_number(IF_size, weight_size, PE_size, stride):
+def compute_window_slide_number(IF_size, PE_size):
 	"""
 	This function computes the number of sliding weight blocks 
 	all over the input feature map to cover all computations
@@ -146,7 +146,7 @@ def compute_window_slide_number(IF_size, weight_size, PE_size, stride):
 	"""
 	# Case for weight fits in PE unit
 	if weight_size < PE_size:
-		window_number = (IF_size - weight_size) / stride + 1
+		window_number = (IF_size) / PE_size + 1
 	else:
 		raise Exception("Weight size is greater than PE size, need another algorithm")
 
@@ -173,7 +173,7 @@ def count_IF_sparsity(IF_map, IF_data, channel_size, window_number, weight_size,
 	compute the sparsity count 
 	"""
 
-	weight_size_squared = weight_size * weight_size
+	weight_size_squared = window_number * window_number
 
 	# print ("weight_size = ",weight_size)
 
@@ -183,9 +183,9 @@ def count_IF_sparsity(IF_map, IF_data, channel_size, window_number, weight_size,
 			for k in range(window_number):
 				column_index = stride * k
 				count = 0
-				for p in range(weight_size):
+				for p in range(window_number):
 					sub_row_index = row_index + p
-					for q in range(weight_size):
+					for q in range(window_number):
 						sub_column_index = column_index + q
 						count += IF_map[i][sub_row_index][sub_column_index]
 
@@ -211,15 +211,13 @@ def compute_IF_linked_list(IF_linked_list, IF_data, weight_kernel_number, window
 
 	kernel_loop_number = weight_kernel_number // PE_number
 
-	# This stores the IF_data
-	upper_left_index, lower_right_index = 0, 0
-
 	for kernel in range(kernel_loop_number):
 		for j in range(window_number):
 			for k in range(window_number):
 				for i in range(channel_size):
 					fetched_block = IF_data[i][j][k]
 					if (fetched_block.in_SRAM == 0):
+						# print ("fetched_block size = ",fetched_block.size)
 						IF_DRAM_access += fetched_block.size
 						IF_SRAM_current_data_size += fetched_block.size
 						IF_linked_list.add_list_item(fetched_block)
@@ -228,8 +226,6 @@ def compute_IF_linked_list(IF_linked_list, IF_data, weight_kernel_number, window
 							IF_SRAM_current_data_size -= IF_linked_list.head.size
 							IF_linked_list.remove_head()
 							
-
-
 
 	return IF_DRAM_access
 
@@ -280,7 +276,7 @@ if __name__ == '__main__':
 	weight_map = sparsify_weight_map(weight_kernel_number, channel_size, weight_size, weight_sparsity)
 
 	# Number of 2D slides
-	window_number = compute_window_slide_number(IF_size, weight_size, PE_size, stride)
+	window_number = compute_window_slide_number(IF_size, PE_size)
 
 	IF_data = construct_IF_points(window_number, channel_size)
 	IF_data = count_IF_sparsity(IF_map, IF_data, channel_size, window_number, weight_size, sparsity_threshold, stride)
