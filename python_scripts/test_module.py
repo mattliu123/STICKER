@@ -264,25 +264,17 @@ if __name__ == '__main__':
 	#Constant
 	Loaded_content = read_file_content("../param/AlexNet_param.yaml")["Layer_one"]
 
-	IF_CHANNEL = 3
-	raw_IF_size = 227
+	IF_CHANNEL, raw_IF_size = Loaded_content["IF_CHANNEL"], Loaded_content["raw_IF_size"]
+	weight_kernel_number = Loaded_content["weight_kernel_number"]
+	channel_size, weight_size = Loaded_content["channel_size"], Loaded_content["weight_size"]
+	padding_size, stride = Loaded_content["padding_size"], Loaded_content["stride"]
 
-	weight_kernel_number = 96
-	channel_size = 3
-	weight_size = 11
-	padding_size = 0
-	stride = 4
+	IF_sparsity, weight_sparsity = Loaded_content["IF_sparsity"], Loaded_content["weight_sparsity"]
+	sparsity_threshold = Loaded_content["sparsity_threshold"]
+	PE_size, PE_number = Loaded_content["PE_size"], Loaded_content["PE_number"]
 
-	IF_sparsity = 98
-	weight_sparsity = 87
+	weight_SRAM_size, IF_SRAM_size = Loaded_content["weight_SRAM_size"], Loaded_content["IF_SRAM_size"]
 
-	sparsity_threshold = 0.5
-
-	PE_size = 16
-	PE_number = 16
-
-	# SRAM buffer size
-	weight_SRAM_size, IF_SRAM_size = 16E3, 16E3
 
 	IF_size = apply_padding(raw_IF_size,padding_size)
 	IF_map = sparsify_IF_map(IF_size, raw_IF_size, channel_size, IF_sparsity, padding_size)
