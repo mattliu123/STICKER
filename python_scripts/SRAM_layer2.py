@@ -81,7 +81,7 @@ temp_k = 0
 
 #Constant
 IF_CHANNEL = 96
-IF_SIZE = 55
+IF_SIZE = 55 # Should be 27 since the original version already split the channels
 
 W_KERNEL = 256
 W_CHANNEL = 96
