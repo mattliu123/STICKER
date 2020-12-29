@@ -188,6 +188,10 @@ def construct_IF_points(window_number, channel_size):
 	return IF_data
 
 def construct_weight_points():
+	"""
+	This constructs the mapping for weight points 
+	"""
+	
 	pass
 
 
