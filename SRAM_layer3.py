@@ -103,17 +103,17 @@ multi_sparsity_W = []
 for i in range(IF_CHANNEL):
 	for j in range(IF_SIZE):
 		for k in range(IF_SIZE):
-			if(randnum < 51):
-				Input_fmap[i][j][k] = 1
-			randnum = random.randint(0,99)
+			#if(randnum < 51):
+			Input_fmap[i][j][k] = 1
+			#randnum = random.randint(0,99)
 
 for i in range(W_KERNEL):
 	for j in range(W_CHANNEL):
 		for k in range(W_SIZE):
 			for l in range(W_SIZE):
-				if(randnum < 2):
-					filter_map[i][j][k][l] = 1
-				randnum = random.randint(0,99)
+			#	if(randnum < 2):
+				filter_map[i][j][k][l] = 1
+				# randnum = random.randint(0,99)
 multi_sparsity_IF = [[[SRAM(0,0,0,1) for i in range(SIZE_2DIF)] for j in range(SIZE_2DIF)]for k in range(CHANNEL_2DIF)]
 multi_sparsity_W = [[SRAM(0,0,0,1) for i in range(SIZE_2DW)] for j in range(CHANNEL_2DW)]
 
