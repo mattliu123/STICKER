@@ -111,7 +111,6 @@ Constant for Multisparsity mode
 
 CHANNEL_2DIF = IF_CHANNEL
 SIZE_2DIF = math.ceil(IF_SIZE/16)
-
 # print(SIZE_2DIF*16)
 # print(IF_SIZE+13)
 
@@ -150,6 +149,14 @@ Multisparsity mode
 '''
 WEIHT_SRAM_list = Linkedlist()
 IF_SRAM_list = Linkedlist()
+dense_count = 256
+threshold = 128
+# if(IF_SIZE<16):
+# 	threshold = (IF_SIZE**2)/2
+# 	dense_count = IF_SIZE**2
+# else:
+# 	threshold = 128
+# 	dense_count = 256
 
 for i in range(IF_CHANNEL):
 	for j in range(SIZE_2DIF):
@@ -158,10 +165,10 @@ for i in range(IF_CHANNEL):
 			for a in range(16):
 				for b in range(16):
 					count = count + Input_fmap[i][16*j+a][16*k+b]
-			if(count<128):
+			if(count<threshold):
 				multi_sparsity_IF[i][j][k].size = count
 			else:
-				multi_sparsity_IF[i][j][k].size = 256
+				multi_sparsity_IF[i][j][k].size = dense_count
 
 for i in range(CHANNEL_2DW):
 	for j in range(SIZE_2DW):
@@ -314,7 +321,7 @@ for t in range(math.ceil(W_KERNEL/16)):
 
 PSUM_DRAM_access = OF_SIZE*OF_SIZE*W_KERNEL
 
-print("IF DRAM Access data =     ",IF_DRAM_access)
+print("IF DRAM Access data     = ",IF_DRAM_access)
 print("Weight DRAM Access data = ",W_DRAM_access)
-print("PSUM DRAM Access data =   ",PSUM_DRAM_access)
-print("Total DRAM Access data =  ",IF_DRAM_access+W_DRAM_access+PSUM_DRAM_access)
+print("PSUM DRAM Access data   = ",PSUM_DRAM_access)
+print("Total DRAM Access data  = ",IF_DRAM_access+W_DRAM_access+PSUM_DRAM_access)
