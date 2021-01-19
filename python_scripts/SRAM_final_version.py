@@ -1,5 +1,7 @@
 import numpy as np
 import random
+import math
+
 '''
 AlexNet
 
@@ -63,7 +65,7 @@ class Linkedlist():
 
 
 #Variable
-randnum = random.randint(0,99)
+randnum = random.randint(0,9999)
 count = 0
 W_DRAM_access = 0
 IF_DRAM_access = 0
@@ -80,24 +82,44 @@ temp_k = 0
 
 
 #Constant
-IF_CHANNEL = 3
-IF_SIZE = 227
+IF_CHANNEL = int(input('IF CHANNEL = '))
+IF_SIZE = int(input('IF SIZE = '))
 
-W_KERNEL = 96
-W_CHANNEL = 3
-W_SIZE = 11
+W_KERNEL = int(input('Kernel num = '))
+W_CHANNEL = IF_CHANNEL
+W_SIZE = int(input('Kernel size = '))
+
+OF_SIZE = int(input('OF SIZE = '))
+
+'''
+
+Sparsity support 4th decimal place
+
+'''
+
+
+WEIGHT_SPARSITY = float(input('Weght Sparsity = '))
+IF_SPARSITY = float(input('IF Sparsity = '))
+
+'''
+
+Constant for Multisparsity mode
+
+
+'''
+
 
 CHANNEL_2DIF = IF_CHANNEL
-SIZE_2DIF = IF_SIZE//16 + 1
+SIZE_2DIF = math.ceil(IF_SIZE/16)
 
-print(SIZE_2DIF*16)
-print(IF_SIZE+13)
+# print(SIZE_2DIF*16)
+# print(IF_SIZE+13)
 
 CHANNEL_2DW = W_CHANNEL
 SIZE_2DW = W_KERNEL
 #Layer0 ifmap: 227*227*3 filter 11*11*3(96 kernels)
 
-Input_fmap = np.zeros((IF_CHANNEL, IF_SIZE + 13, IF_SIZE + 13), dtype = int)
+Input_fmap = np.zeros((IF_CHANNEL, SIZE_2DIF*16, SIZE_2DIF*16), dtype = int)
 filter_map = np.zeros((W_KERNEL, W_CHANNEL, W_SIZE, W_SIZE), dtype = int)
 
 multi_sparsity_IF = []
@@ -107,17 +129,17 @@ multi_sparsity_W = []
 for i in range(IF_CHANNEL):
 	for j in range(IF_SIZE):
 		for k in range(IF_SIZE):
-			if(randnum < 98):
+			if(randnum < 10000*IF_SPARSITY):
 				Input_fmap[i][j][k] = 1
-			randnum = random.randint(0,99)
+			randnum = random.randint(0,9999)
 
 for i in range(W_KERNEL):
 	for j in range(W_CHANNEL):
 		for k in range(W_SIZE):
 			for l in range(W_SIZE):
-				if(randnum < 87):
+				if(randnum < 10000*WEIGHT_SPARSITY):
 					filter_map[i][j][k][l] = 1
-				randnum = random.randint(0,99)
+				randnum = random.randint(0,9999)
 multi_sparsity_IF = [[[SRAM(0,0,0,1) for i in range(SIZE_2DIF)] for j in range(SIZE_2DIF)]for k in range(CHANNEL_2DIF)]
 multi_sparsity_W = [[SRAM(0,0,0,1) for i in range(SIZE_2DW)] for j in range(CHANNEL_2DW)]
 
@@ -147,17 +169,17 @@ for i in range(CHANNEL_2DW):
 		for a in range(W_SIZE):
 			for b in range(W_SIZE):
 				count = count + filter_map[j][i][a][b]
-		if(count<61):
+		if(count<((W_SIZE**2)/2)):
 			multi_sparsity_W[i][j].size = count
 		else:
-			multi_sparsity_W[i][j].size = 121
+			multi_sparsity_W[i][j].size = W_SIZE**2
 
 '''
 PE ARRAY: Channel -> 2D -> Kernel
 
 '''
 
-for t in range(W_KERNEL//16):
+for t in range(math.ceil(W_KERNEL/16)):
 	for j in range(SIZE_2DIF):
 		for k in range(SIZE_2DIF):
 			for i in range(CHANNEL_2DIF):
@@ -224,8 +246,8 @@ for t in range(W_KERNEL//16):
 
 #Weight DRAM access
 
-for t in range(6):
-	for k in range(225):
+for t in range(math.ceil(W_KERNEL/16)):
+	for k in range(SIZE_2DIF**2):
 		for i in range(CHANNEL_2DIF):
 			for j in range(16):
 				weight_data = multi_sparsity_W[i][16*t+j]
@@ -288,7 +310,11 @@ for t in range(6):
 				# 	for b in range(SIZE_2DW):
 				# 		if(multi_sparsity_W[a][b].in_SRAM==1):
 				# 			multi_sparsity_W[a][b].least_recently_used = multi_sparsity_W[a][b].least_recently_used + 1
+#PSUM DRAM Access
 
-print("IF DRAM Access data for Layer1 = ",IF_DRAM_access)
-print("Weight DRAM Access data for Layer1 = ",W_DRAM_access)
+PSUM_DRAM_access = OF_SIZE*OF_SIZE*W_KERNEL
 
+print("IF DRAM Access data =     ",IF_DRAM_access)
+print("Weight DRAM Access data = ",W_DRAM_access)
+print("PSUM DRAM Access data =   ",PSUM_DRAM_access)
+print("Total DRAM Access data =  ",IF_DRAM_access+W_DRAM_access+PSUM_DRAM_access)
