@@ -16,6 +16,33 @@ Layer_one: {
 
   sparsity_threshold: 0.5,
 
+
+  PE_size: 16,
+  PE_number: 16,
+
+  # SRAM buffer size
+  weight_SRAM_size: 16000,
+  IF_SRAM_size: 16000  
+}
+
+
+
+Layer_two: {
+  #Constant
+  IF_CHANNEL: 3,
+  raw_IF_size: 227,
+
+  weight_kernel_number: 96,
+  channel_size: 3,
+  weight_size: 11,
+  padding_size: 0,
+  stride: 4,
+
+  IF_sparsity: 98,
+  weight_sparsity: 87,
+
+  sparsity_threshold: 0.5,
+
   PE_size: 16,
   PE_number: 16,
 
